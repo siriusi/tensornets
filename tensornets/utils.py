@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import numpy as np
 import tensorflow as tf
+import warnings
 
 from contextlib import contextmanager
 from distutils.version import LooseVersion
@@ -219,6 +220,7 @@ def init(scopes):
 def var_scope(name):
     def decorator(func):
         def wrapper(*args, **kwargs):
+            stem = kwargs.get('stem', False)
             scope = kwargs.get('scope', None)
             reuse = kwargs.get('reuse', None)
             with tf.variable_scope(scope, name, reuse=reuse):
@@ -232,6 +234,9 @@ def var_scope(name):
                     _outs = get_outputs(_scope)
                     for i in p0(name)[0]:
                         collect_named_outputs(__middles__, _scope, _outs[i])
+                    if stem:
+                        x.aliases.insert(0, _scope)
+                        x.p = get_middles(_scope)[p0(name)[2]]
                     setattr(x, 'preprocess', p1(name, _input_shape))
                     setattr(x, 'pretrained', p2(name, x))
                     setattr(x, 'get_bottleneck',
@@ -289,8 +294,9 @@ def pretrained_initializer(scope, values):
     if len(weights) > len(values):  # excluding weights in Optimizer
         weights = weights[:len(values)]
 
-    assert len(weights) == len(values), 'The sizes of symbolic and ' \
-                                        'actual weights do not match.' \
+    if len(weights) != len(values):
+        warnings.warn('The sizes of symbolic and actual weights do not match. '
+                      'Never mind if you are trying to load stem layers only.')
 
     ops = [w.assign(v) for (w, v) in zip(weights[:-2], values[:-2])]
     if weights[-1].shape != values[-1].shape:  # for transfer learning
@@ -399,7 +405,7 @@ def parse_torch_weights(weights_path, move_rules=None):
     return values
 
 
-def remove_head(name):
+def remove_head(original_stem, name):
     _scope = "%s/stem" % tf.get_variable_scope().name
     g = tf.get_default_graph()
     for x in g.get_collection(tf.GraphKeys.GLOBAL_VARIABLES,
@@ -412,6 +418,7 @@ def remove_head(name):
         if name in x.name:
             break
         g.get_collection_ref(__outputs__).pop()
+    x.model_name = original_stem.model_name
     return x
 
 

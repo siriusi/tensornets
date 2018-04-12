@@ -20,6 +20,7 @@ from .layers import batch_norm
 from .layers import bias_add
 from .layers import conv2d
 from .layers import darkconv as conv
+from .layers import fc
 from .layers import max_pool2d as pool
 
 from .ops import *
@@ -55,10 +56,9 @@ def darknet19(x, is_training=False, classes=1000,
     x = pool(x, 2, stride=2, scope='pool3')
     x = _stack(x, 256, 3, scope='conv4')
     x = pool(x, 2, stride=2, scope='pool4')
-    x = p = _stack(x, 512, 5, scope='conv5')
+    x = _stack(x, 512, 5, scope='conv5')
     x = pool(x, 2, stride=2, scope='pool5')
     x = _stack(x, 1024, 5, scope='conv6')
-    x.p = p
     if stem: return x
 
     x = reduce_mean(x, [1, 2], name='avgpool')
