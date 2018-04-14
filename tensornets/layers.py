@@ -5,6 +5,7 @@ import tensorflow as tf
 from tensorflow.contrib.layers import avg_pool2d
 from tensorflow.contrib.layers import batch_norm
 from tensorflow.contrib.layers import bias_add
+from tensorflow.contrib.layers.python.layers import convolution as conv1d
 from tensorflow.contrib.layers import conv2d
 from tensorflow.contrib.layers import dropout
 from tensorflow.contrib.layers import flatten
@@ -17,6 +18,9 @@ from .ops import relu
 from .ops import relu6
 from .utils import arg_scope
 from .utils import remove_commons
+
+
+conv1d = conv2d
 
 
 def convbn(*args, **kwargs):
