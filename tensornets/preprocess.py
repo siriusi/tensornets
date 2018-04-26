@@ -55,12 +55,19 @@ def bair_preprocess(x):
 
 
 def tfslim_preprocess(x):
+    # 这个地方原始是下面那个，但是当x是int时会有bug，改成这种形式不会
     # Copied from keras (equivalent to the same as in TF Slim)
     x = x.copy()
-    x /= 255.
-    x -= 0.5
-    x *= 2.
+    x = x / 255.
+    x = x - 0.5
+    x = x * 2.
     return x
+    # Copied from keras (equivalent to the same as in TF Slim)
+    #x = x.copy()
+    #x /= 255.
+    #x -= 0.5
+    #x *= 2.
+    #return x
 
 
 def keras_resnet_preprocess(x):

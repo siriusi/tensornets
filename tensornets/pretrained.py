@@ -157,7 +157,7 @@ def load_inceptionresnet2(scopes, return_fn=_assign):
     weights_path = get_file(
         filename, __model_url__ + 'inception/' + filename,
         cache_subdir='models',
-        file_hash='32d685e68e6be6ba1da64e41f939bc49')
+        file_hash='32d685e68e6be6ba1da64e41f939bc49', cache_dir = "./")
     values = parse_weights(weights_path)
     return return_fn(scopes, values)
 
@@ -518,7 +518,7 @@ def load_mobilenet100(scopes, return_fn=_assign):
     weights_path = get_file(
         filename, __model_url__ + 'mobilenet/' + filename,
         cache_subdir='models',
-        file_hash='3d14409e3e119c8881baf7dd1d54e714')
+        file_hash='3d14409e3e119c8881baf7dd1d54e714', cache_dir = "./")
     values = parse_weights(weights_path)
     return return_fn(scopes, values)
 
