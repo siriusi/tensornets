@@ -1,0 +1,213 @@
+/home/z_tomcato/assignment1/py3env/bin/python: can't find '__main__' module in '/home/z_tomcato/cs231n/tensornets'
+/home/z_tomcato/assignment1/py3env/bin/python: can't find '__main__' module in '/home/z_tomcato/cs231n/tensornets'
+Traceback (most recent call last):
+  File "tensornets_train.py", line 1, in <module>
+    import tensorflow as tf
+ImportError: No module named tensorflow
+terminate called recursively
+terminate called recursively
+2018-04-27 10:05:02.001968: W tensorflow/core/framework/op_kernel.cc:1192] Resource exhausted: OOM when allocating tensor with shape[500,56,56,128]
+/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+========================20180427_10:04:24=========================
+Train data shape:  (49000, 32, 32, 3)
+Train labels shape:  (49000,)
+Validation data shape:  (1000, 32, 32, 3)
+Validation labels shape:  (1000,)
+Test data shape:  (10000, 32, 32, 3)
+Test labels shape:  (10000,)
+Batch dataset initialized.
+# of training data: 49000
+# of test data: 1000
+# of class: 10
+#############################Epoch Start##############################
+Traceback (most recent call last):
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/client/session.py", line 1323, in _do_call
+    return fn(*args)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/client/session.py", line 1302, in _run_fn
+    status, run_metadata)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/framework/errors_impl.py", line 473, in __exit__
+    c_api.TF_GetCode(self.status.status))
+tensorflow.python.framework.errors_impl.FailedPreconditionError: Attempting to use uninitialized value beta2_power
+	 [[Node: beta2_power/read = Identity[T=DT_FLOAT, _class=["loc:@mobilenet100/conv1/bn/beta"], _device="/job:localhost/replica:0/task:0/device:CPU:0"](beta2_power)]]
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "tensornets_train.py", line 170, in <module>
+    tf.app.run()
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/platform/app.py", line 48, in run
+    _sys.exit(main(_sys.argv[:1] + flags_passthrough))
+  File "tensornets_train.py", line 165, in main
+    run_model(sess, X_train, y_train,X_val,y_val, epochs=6, batch_size=500,print_every=10, learning_rate = 0.001)
+  File "tensornets_train.py", line 114, in run_model
+    cnn_net, cnn_accuracy, train_summary], feed_dict=feed)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/client/session.py", line 889, in run
+    run_metadata_ptr)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/client/session.py", line 1120, in _run
+    feed_dict_tensor, options, run_metadata)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/client/session.py", line 1317, in _do_run
+    options, run_metadata)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/client/session.py", line 1336, in _do_call
+    raise type(e)(node_def, op, message)
+tensorflow.python.framework.errors_impl.FailedPreconditionError: Attempting to use uninitialized value beta2_power
+	 [[Node: beta2_power/read = Identity[T=DT_FLOAT, _class=["loc:@mobilenet100/conv1/bn/beta"], _device="/job:localhost/replica:0/task:0/device:CPU:0"](beta2_power)]]
+
+Caused by op 'beta2_power/read', defined at:
+  File "tensornets_train.py", line 170, in <module>
+    tf.app.run()
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/platform/app.py", line 48, in run
+    _sys.exit(main(_sys.argv[:1] + flags_passthrough))
+  File "tensornets_train.py", line 165, in main
+    run_model(sess, X_train, y_train,X_val,y_val, epochs=6, batch_size=500,print_every=10, learning_rate = 0.001)
+  File "tensornets_train.py", line 102, in run_model
+    cnn_train = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cnn_loss)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/training/optimizer.py", line 353, in minimize
+    name=name)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/training/optimizer.py", line 474, in apply_gradients
+    self._create_slots([_get_variable_for(v) for v in var_list])
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/training/adam.py", line 133, in _create_slots
+    trainable=False)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/ops/variable_scope.py", line 1927, in variable
+    caching_device=caching_device, name=name, dtype=dtype)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/ops/variables.py", line 213, in __init__
+    constraint=constraint)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/ops/variables.py", line 356, in _init_from_args
+    self._snapshot = array_ops.identity(self._variable, name="read")
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/ops/array_ops.py", line 125, in identity
+    return gen_array_ops.identity(input, name=name)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/ops/gen_array_ops.py", line 2071, in identity
+    "Identity", input=input, name=name)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/framework/op_def_library.py", line 787, in _apply_op_helper
+    op_def=op_def)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/framework/ops.py", line 2956, in create_op
+    op_def=op_def)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/framework/ops.py", line 1470, in __init__
+    self._traceback = self._graph._extract_stack()  # pylint: disable=protected-access
+
+FailedPreconditionError (see above for traceback): Attempting to use uninitialized value beta2_power
+	 [[Node: beta2_power/read = Identity[T=DT_FLOAT, _class=["loc:@mobilenet100/conv1/bn/beta"], _device="/job:localhost/replica:0/task:0/device:CPU:0"](beta2_power)]]
+
+2018-04-27 10:59:49.256693: W tensorflow/core/framework/op_kernel.cc:1192] Resource exhausted: OOM when allocating tensor with shape[500,56,56,128]
+/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+========================20180427_10:59:24=========================
+Train data shape:  (49000, 32, 32, 3)
+Train labels shape:  (49000,)
+Validation data shape:  (1000, 32, 32, 3)
+Validation labels shape:  (1000,)
+Test data shape:  (10000, 32, 32, 3)
+Test labels shape:  (10000,)
+Batch dataset initialized.
+# of training data: 49000
+# of test data: 1000
+# of class: 10
+#############################Epoch Start##############################
+Traceback (most recent call last):
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/client/session.py", line 1323, in _do_call
+    return fn(*args)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/client/session.py", line 1302, in _run_fn
+    status, run_metadata)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/framework/errors_impl.py", line 473, in __exit__
+    c_api.TF_GetCode(self.status.status))
+tensorflow.python.framework.errors_impl.ResourceExhaustedError: OOM when allocating tensor with shape[500,56,56,128]
+	 [[Node: mobilenet100/conv4/conv/Relu6 = Relu6[T=DT_FLOAT, _device="/job:localhost/replica:0/task:0/device:CPU:0"](mobilenet100/conv4/conv/bn/FusedBatchNorm)]]
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "tensornets_train.py", line 171, in <module>
+    tf.app.run()
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/platform/app.py", line 48, in run
+    _sys.exit(main(_sys.argv[:1] + flags_passthrough))
+  File "tensornets_train.py", line 166, in main
+    run_model(sess, X_train, y_train,X_val,y_val, epochs=6, batch_size=500,print_every=10, learning_rate = 0.001)
+  File "tensornets_train.py", line 115, in run_model
+    cnn_net, cnn_accuracy, train_summary], feed_dict=feed)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/client/session.py", line 889, in run
+    run_metadata_ptr)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/client/session.py", line 1120, in _run
+    feed_dict_tensor, options, run_metadata)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/client/session.py", line 1317, in _do_run
+    options, run_metadata)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/client/session.py", line 1336, in _do_call
+    raise type(e)(node_def, op, message)
+tensorflow.python.framework.errors_impl.ResourceExhaustedError: OOM when allocating tensor with shape[500,56,56,128]
+	 [[Node: mobilenet100/conv4/conv/Relu6 = Relu6[T=DT_FLOAT, _device="/job:localhost/replica:0/task:0/device:CPU:0"](mobilenet100/conv4/conv/bn/FusedBatchNorm)]]
+
+Caused by op 'mobilenet100/conv4/conv/Relu6', defined at:
+  File "tensornets_train.py", line 171, in <module>
+    tf.app.run()
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/platform/app.py", line 48, in run
+    _sys.exit(main(_sys.argv[:1] + flags_passthrough))
+  File "tensornets_train.py", line 166, in main
+    run_model(sess, X_train, y_train,X_val,y_val, epochs=6, batch_size=500,print_every=10, learning_rate = 0.001)
+  File "tensornets_train.py", line 74, in run_model
+    cnn_net = nets.MobileNet100(inputs, is_training = True, classes = num_class)
+  File "/home/z_tomcato/cs231n/tensornets/tensornets/utils.py", line 230, in wrapper
+    x = func(*args, **kwargs)
+  File "/home/z_tomcato/cs231n/tensornets/tensornets/utils.py", line 284, in wrapper
+    x = func(*args, **kwargs)
+  File "/home/z_tomcato/cs231n/tensornets/tensornets/mobilenets.py", line 109, in mobilenet100
+    return mobilenet(x, 1.0, is_training, classes, stem, scope, reuse)
+  File "/home/z_tomcato/cs231n/tensornets/tensornets/mobilenets.py", line 61, in mobilenet
+    x = block(x, depth(128), scope='conv4')
+  File "/home/z_tomcato/cs231n/tensornets/tensornets/utils.py", line 230, in wrapper
+    x = func(*args, **kwargs)
+  File "/home/z_tomcato/cs231n/tensornets/tensornets/mobilenets.py", line 48, in block
+    x = conv(x, filters, 1, stride=1, scope='conv')
+  File "/home/z_tomcato/cs231n/tensornets/tensornets/layers.py", line 54, in convbnrelu6
+    return relu6(batch_norm(conv2d(*args, **kwargs)))
+  File "/home/z_tomcato/cs231n/tensornets/tensornets/utils.py", line 261, in wrapper
+    x = func(*args, **kwargs)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/ops/nn_ops.py", line 1522, in relu6
+    return gen_nn_ops._relu6(features, name=name)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/ops/gen_nn_ops.py", line 4141, in _relu6
+    "Relu6", features=features, name=name)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/framework/op_def_library.py", line 787, in _apply_op_helper
+    op_def=op_def)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/framework/ops.py", line 2956, in create_op
+    op_def=op_def)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/framework/ops.py", line 1470, in __init__
+    self._traceback = self._graph._extract_stack()  # pylint: disable=protected-access
+
+ResourceExhaustedError (see above for traceback): OOM when allocating tensor with shape[500,56,56,128]
+	 [[Node: mobilenet100/conv4/conv/Relu6 = Relu6[T=DT_FLOAT, _device="/job:localhost/replica:0/task:0/device:CPU:0"](mobilenet100/conv4/conv/bn/FusedBatchNorm)]]
+???????!!!!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@222
+/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+========================20180427_11:18:22=========================
+Train data shape:  (49000, 32, 32, 3)
+Train labels shape:  (49000,)
+Validation data shape:  (1000, 32, 32, 3)
+Validation labels shape:  (1000,)
+Test data shape:  (10000, 32, 32, 3)
+Test labels shape:  (10000,)
+Batch dataset initialized.
+# of training data: 49000
+# of test data: 1000
+# of class: 10
+#############################Epoch Start##############################
+10/588 (0 epochs) step, loss : 1.813562, accuracy : 0.654, time/batch : 97.619sec
+20/588 (0 epochs) step, loss : 1.765320, accuracy : 0.708, time/batch : 97.672sec
+30/588 (0 epochs) step, loss : 1.719066, accuracy : 0.750, time/batch : 97.509sec
+40/588 (0 epochs) step, loss : 1.672382, accuracy : 0.800, time/batch : 97.276sec
+50/588 (0 epochs) step, loss : 1.680974, accuracy : 0.776, time/batch : 97.433sec
+60/588 (0 epochs) step, loss : 1.679402, accuracy : 0.790, time/batch : 97.375sec
+70/588 (0 epochs) step, loss : 1.632148, accuracy : 0.832, time/batch : 97.728sec
+80/588 (0 epochs) step, loss : 1.643953, accuracy : 0.814, time/batch : 97.559sec
+90/588 (0 epochs) step, loss : 1.657872, accuracy : 0.802, time/batch : 97.191sec
+Traceback (most recent call last):
+  File "tensornets_train.py", line 173, in <module>
+    tf.app.run()
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/platform/app.py", line 48, in run
+    _sys.exit(main(_sys.argv[:1] + flags_passthrough))
+  File "tensornets_train.py", line 168, in main
+    run_model(sess, X_train, y_train,X_val,y_val, epochs=6, batch_size=500,print_every=10, learning_rate = 0.001)
+  File "tensornets_train.py", line 135, in run_model
+    loss, accuracy, summary = sess.run([cnn_loss, cnn_accuracy, test_summary], feed_dict=feed)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/client/session.py", line 889, in run
+    run_metadata_ptr)
+  File "/home/z_tomcato/assignment1/py3env/lib/python3.5/site-packages/tensorflow/python/client/session.py", line 1096, in _run
+    % (np_val.shape, subfeed_t.name, str(subfeed_t.get_shape())))
+ValueError: Cannot feed value of shape (1000, 32, 32, 3) for Tensor 'Placeholder:0', which has shape '(?, 224, 224, 3)'
