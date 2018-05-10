@@ -42,7 +42,9 @@ from .layers import batch_norm
 from .layers import conv2d
 from .layers import fc
 from .layers import max_pool2d
+from .layers import separable_conv2d
 from .layers import convbn as conv
+from .layers import gconvbn as gconv
 
 from .ops import *
 from .utils import pad_info
@@ -56,7 +58,10 @@ def __args__(is_training):
             ([conv2d], {'padding': 'VALID', 'activation_fn': None,
                         'scope': 'conv'}),
             ([fc], {'activation_fn': None, 'scope': 'fc'}),
-            ([max_pool2d], {'scope': 'pool'})]
+            ([max_pool2d], {'scope': 'pool'}),
+            ([separable_conv2d], {'padding': 'VALID', 'activation_fn': None,
+                                  'biases_initializer': None,
+                                  'scope': 'sconv'})]
 
 
 def resnet(x, preact, stack_fn, is_training, classes, stem,
@@ -67,7 +72,7 @@ def resnet(x, preact, stack_fn, is_training, classes, stem,
     else:
         x = conv(x, 64, 7, stride=2, scope='conv1')
         x = relu(x, name='conv1/relu')
-    x = pad(x, pad_info(3), name='pool1/pad')
+    x = pad(x, pad_info(0 if stem else 3), name='pool1/pad')
     x = max_pool2d(x, 3, stride=2, scope='pool1')
     x = stack_fn(x)
     if stem: return x
@@ -181,6 +186,9 @@ def resnet200v2(x, is_training=False, classes=1000,
 def resnext50c32(x, is_training=False, classes=1000,
                  stem=False, scope=None, reuse=None):
     def stack_fn(x):
+        def _block3c32(*args, **kwargs):
+            kwargs.update({'groups': 32})
+            return _block3(*args, **kwargs)
         x = _stack(x, _block3c32, 128, 3, stride1=1, scope='conv2')
         x = _stack(x, _block3c32, 256, 4, scope='conv3')
         x = _stack(x, _block3c32, 512, 6, scope='conv4')
@@ -194,6 +202,9 @@ def resnext50c32(x, is_training=False, classes=1000,
 def resnext101c32(x, is_training=False, classes=1000,
                   stem=False, scope=None, reuse=None):
     def stack_fn(x):
+        def _block3c32(*args, **kwargs):
+            kwargs.update({'groups': 32})
+            return _block3(*args, **kwargs)
         x = _stack(x, _block3c32, 128, 3, stride1=1, scope='conv2')
         x = _stack(x, _block3c32, 256, 4, scope='conv3')
         x = _stack(x, _block3c32, 512, 23, scope='conv4')
@@ -207,6 +218,9 @@ def resnext101c32(x, is_training=False, classes=1000,
 def resnext101c64(x, is_training=False, classes=1000,
                   stem=False, scope=None, reuse=None):
     def stack_fn(x):
+        def _block3c64(*args, **kwargs):
+            kwargs.update({'groups': 64})
+            return _block3(*args, **kwargs)
         x = _stack(x, _block3c64, 256, 3, stride1=1, scope='conv2')
         x = _stack(x, _block3c64, 512, 4, scope='conv3')
         x = _stack(x, _block3c64, 1024, 23, scope='conv4')
@@ -303,46 +317,21 @@ def _block2s(x, filters, kernel_size=3, stride=1,
     return x
 
 
-@var_scope('block3c32')
-def _block3c32(x, filters, kernel_size=3, stride=1,
-               conv_shortcut=True, scope=None):
+@var_scope('block3')
+def _block3(x, filters, kernel_size=3, stride=1, groups=32,
+            conv_shortcut=True, scope=None):
     if conv_shortcut is True:
-        shortcut = conv(x, 2 * filters, 1, stride=stride, scope='0')
+        shortcut = conv(x, (64 // groups) * filters, 1,
+                        stride=stride, scope='0')
     else:
         shortcut = x
     x = conv(x, filters, 1, stride=1, scope='1')
     x = relu(x, name='1/relu')
     x = pad(x, pad_info(kernel_size), name='2/pad')
-    channels = filters // 32
-    convgroups = [conv2d(x[:, :, :, c*channels:(c+1)*channels], channels,
-                         kernel_size, stride=stride, scope="2/%d" % c)
-                  for c in range(32)]
-    x = concat(convgroups, axis=3, name='concat')
-    x = batch_norm(x, scope='2/bn')
+    x = gconv(x, None, kernel_size, filters // groups,
+              stride=stride, scope='2')
     x = relu(x, name='2/relu')
-    x = conv(x, 2 * filters, 1, stride=1, scope='3')
-    x = relu(shortcut + x, name='out')
-    return x
-
-
-@var_scope('block3c64')
-def _block3c64(x, filters, kernel_size=3, stride=1,
-               conv_shortcut=True, scope=None):
-    if conv_shortcut is True:
-        shortcut = conv(x, filters, 1, stride=stride, scope='0')
-    else:
-        shortcut = x
-    x = conv(x, filters, 1, stride=1, scope='1')
-    x = relu(x, name='1/relu')
-    x = pad(x, pad_info(kernel_size), name='2/pad')
-    channels = filters // 64
-    convgroups = [conv2d(x[:, :, :, c*channels:(c+1)*channels], channels,
-                         kernel_size, stride=stride, scope="2/%d" % c)
-                  for c in range(64)]
-    x = concat(convgroups, axis=3, name='concat')
-    x = batch_norm(x, scope='2/bn')
-    x = relu(x, name='2/relu')
-    x = conv(x, filters, 1, stride=1, scope='3')
+    x = conv(x, (64 // groups) * filters, 1, stride=1, scope='3')
     x = relu(shortcut + x, name='out')
     return x
 

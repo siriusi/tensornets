@@ -65,6 +65,14 @@ pytestmark = pytest.mark.skipif(
         (nets.MobileNet75, (224, 224, 3)),
         (nets.MobileNet100, (224, 224, 3)),
     ]),
+    random.choice([
+        (nets.MobileNet35v2, (224, 224, 3)),
+        (nets.MobileNet50v2, (224, 224, 3)),
+        (nets.MobileNet75v2, (224, 224, 3)),
+        (nets.MobileNet100v2, (224, 224, 3)),
+        (nets.MobileNet130v2, (224, 224, 3)),
+        (nets.MobileNet140v2, (224, 224, 3)),
+    ]),
     (nets.SqueezeNet, (224, 224, 3)),
 ], ids=[
     'ResNet',
@@ -82,46 +90,50 @@ pytestmark = pytest.mark.skipif(
     'VGG',
     'DenseNet',
     'MobileNet',
+    'MobileNetv2',
     'SqueezeNet',
 ])
 def test_classification_basics(net, shape):
-    inputs = tf.placeholder(tf.float32, [None] + list(shape))
-    model = net(inputs, is_training=False)
-    assert isinstance(model, tf.Tensor)
+    with tf.Graph().as_default():
+        inputs = tf.placeholder(tf.float32, [None] + list(shape))
+        model = net(inputs, is_training=False)
+        assert isinstance(model, tf.Tensor)
 
-    x = np.random.random((1,) + shape).astype(np.float32)
+        x = np.random.random((1,) + shape).astype(np.float32) * 255
 
-    with tf.Session() as sess:
-        nets.init(model)
-        y = model.eval({inputs: x})
+        with tf.Session() as sess:
+            nets.init(model)
+            y = model.eval({inputs: model.preprocess(x)})
 
-    for (a, b) in zip(model.get_middles(), direct(model.aliases[0])[1]):
-        assert a.name.endswith(b)
+        for (a, b) in zip(model.get_middles(), direct(model.aliases[0])[1]):
+            assert a.name.endswith(b)
 
-    assert y.shape == (1, 1000)
+        assert y.shape == (1, 1000)
 
 
-def test_detection_basics():
+@pytest.mark.parametrize('net,shape,stem', [
+    (nets.YOLOv2, (416, 416, 3), nets.Darknet19),
+    (nets.TinyYOLOv2, (416, 416, 3), nets.TinyDarknet19),
+], ids=[
+    'YOLOv2',
+    'TinyYOLOv2',
+])
+def test_detection_basics(net, shape, stem):
     # TODO: Once the roi-pooling dependency is removed,
     # FasterRCNN-related tests should be added.
-    inputs = tf.placeholder(tf.float32, [None, 416, 416, 3])
-    model1 = nets.YOLOv2(inputs, nets.Darknet19, is_training=False)
-    assert isinstance(model1, tf.Tensor)
+    with tf.Graph().as_default():
+        inputs = tf.placeholder(tf.float32, [None] + list(shape))
+        model = net(inputs, stem, is_training=False)
+        assert isinstance(model, tf.Tensor)
 
-    model2 = nets.TinyYOLOv2(inputs, nets.TinyDarknet19, is_training=False)
-    assert isinstance(model2, tf.Tensor)
+        x = np.random.random((1, 733, 490, 3)).astype(np.float32) * 255
 
-    x = np.random.random((1, 733, 490, 3)).astype(np.float32) * 255
+        with tf.Session() as sess:
+            nets.init(model)
+            y = model.eval({inputs: model.preprocess(x)})
 
-    with tf.Session() as sess:
-        nets.init([model1, model2])
-        y1 = model1.eval({inputs: model1.preprocess(x)})
-        y2 = model2.eval({inputs: model2.preprocess(x)})
+        # TODO: Once the get_boxes's are translated from cython,
+        # get_boxes tests should be enabled.
+        # boxes = model.get_boxes(y, x.shape[1:3])
 
-    # TODO: Once the get_boxes's are translated from cython,
-    # get_boxes tests should be enabled.
-    # boxes1 = model1.get_boxes(y1, x.shape[1:3])
-    # boxes2 = model2.get_boxes(y2, x.shape[1:3])
-
-    # assert len(boxes1) == 20
-    # assert len(boxes2) == 20
+        # assert len(boxes) == 20

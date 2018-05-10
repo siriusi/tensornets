@@ -51,19 +51,22 @@ def parse_box(b, t, w, h):
     idx = np.argmax(b.probs)
     score = b.probs[idx]
     if score > t:
-        x1 = int((b.x - b.w / 2) * w)
-        y1 = int((b.y - b.h / 2) * h)
-        x2 = int((b.x + b.w / 2) * w)
-        y2 = int((b.y + b.h / 2) * h)
-        if x1 < 0:
-            x1 = 0
-        if x2 > w - 1:
-            x2 = w - 1
-        if y1 < 0:
-            y1 = 0
-        if y2 > h - 1:
-            y2 = h - 1
-        return idx, (x1, y1, x2, y2, score)
+        try:
+            x1 = int((b.x - b.w / 2) * w)
+            y1 = int((b.y - b.h / 2) * h)
+            x2 = int((b.x + b.w / 2) * w)
+            y2 = int((b.y + b.h / 2) * h)
+            if x1 < 0:
+                x1 = 0
+            if x2 > w - 1:
+                x2 = w - 1
+            if y1 < 0:
+                y1 = 0
+            if y2 > h - 1:
+                y2 = h - 1
+            return idx, (x1, y1, x2, y2, score)
+        except:
+            return None, None
     else:
         return None, None
 
@@ -72,15 +75,14 @@ def get_v3_boxes(opts, outs, source_size, threshold=0.1):
     h, w = source_size
     boxes = [[] for _ in xrange(opts['classes'])]
     opts['thresh'] = threshold
-    opts['in_size'] = (416, 416)
-    for i in range(3):
-        opts['out_size'] = list(outs[i][0].shape)
-        opts['anchor_idx'] = 6 - 3 * i
-        results = yolov3_box(opts, outs[i][0].copy())
-        for b in results:
-            idx, box = parse_box(b, threshold, w, h)
-            if idx is not None:
-                boxes[idx].append(box)
+    results = yolov3_box(opts,
+                         np.array(outs[0][0], dtype=np.float32),
+                         np.array(outs[1][0], dtype=np.float32),
+                         np.array(outs[2][0], dtype=np.float32))
+    for b in results:
+        idx, box = parse_box(b, threshold, w, h)
+        if idx is not None:
+            boxes[idx].append(box)
     for i in xrange(opts['classes']):
         boxes[i] = np.asarray(boxes[i], dtype=np.float32)
     return boxes
@@ -90,8 +92,7 @@ def get_v2_boxes(opts, outs, source_size, threshold=0.1):
     h, w = source_size
     boxes = [[] for _ in xrange(opts['classes'])]
     opts['thresh'] = threshold
-    opts['out_size'] = list(outs[0].shape)
-    results = yolov2_box(opts, outs[0].copy())
+    results = yolov2_box(opts, np.array(outs[0], dtype=np.float32))
     for b in results:
         idx, box = parse_box(b, threshold, w, h)
         if idx is not None:

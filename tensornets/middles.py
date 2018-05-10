@@ -1,6 +1,8 @@
 """Collection of representative endpoints for each model."""
 from __future__ import absolute_import
 
+from .utils import tf_later_than
+
 
 def names_inceptions(k, first_block, omit_first=False,
                      pool_last=False, resnet=False):
@@ -57,6 +59,37 @@ def names_darknets(k):
         if i < 3:
             names += ["pool%d/MaxPool:0" % (i + 3)]
     return names
+
+
+def tuple_mobilenetv2():
+    def baseidx(b):
+        return [b, b + 3, b + 5]
+    indices = baseidx(2)
+    if tf_later_than('1.3.0'):
+        bn_name = 'FusedBatchNorm:0'
+    else:
+        bn_name = 'batchnorm/add_1:0'
+    names = ['conv1/Relu6:0', 'sconv1/Relu6:0', 'pconv1/bn/' + bn_name]
+    k = 10
+    l = 2
+    for (i, j) in enumerate([2, 3, 4, 3, 3, 1]):
+        indices += baseidx(k)
+        names += ["conv%d/conv/Relu6:0" % l,
+                  "conv%d/sconv/Relu6:0" % l,
+                  "conv%d/pconv/bn/%s" % (l, bn_name)]
+        k += 8
+        l += 1
+        for _ in range(j - 1):
+            indices += (baseidx(k) + [k + 6])
+            names += ["conv%d/conv/Relu6:0" % l,
+                      "conv%d/sconv/Relu6:0" % l,
+                      "conv%d/pconv/bn/%s" % (l, bn_name),
+                      "conv%d/out:0" % l]
+            k += 9
+            l += 1
+    indices += [k]
+    names += ["conv%d/Relu6:0" % l]
+    return (indices, names, -16)
 
 
 def direct(model_name):
@@ -139,32 +172,32 @@ __middles_dict__ = {
         -4
     ),
     'resnext50': (
-        list(range(49, 134, 42)) + list(range(177, 304, 42)) +
-        list(range(347, 558, 42)) + list(range(601, 686, 42)),
+        list(range(18, 41, 11)) + list(range(53, 87, 11)) +
+        list(range(99, 155, 11)) + list(range(167, 190, 11)),
         names_resnets([3, 4, 6, 3]),
         -4
     ),
     'resnext101': (
-        list(range(49, 134, 42)) + list(range(177, 304, 42)) +
-        list(range(347, 1272, 42)) + list(range(1315, 1400, 42)),
+        list(range(18, 41, 11)) + list(range(53, 87, 11)) +
+        list(range(99, 342, 11)) + list(range(354, 377, 11)),
         names_resnets([3, 4, 23, 3]),
         -4
     ),
     'resnext50c32': (
-        list(range(49, 134, 42)) + list(range(177, 304, 42)) +
-        list(range(347, 558, 42)) + list(range(601, 686, 42)),
+        list(range(18, 41, 11)) + list(range(53, 87, 11)) +
+        list(range(99, 155, 11)) + list(range(167, 190, 11)),
         names_resnets([3, 4, 6, 3]),
         -4
     ),
     'resnext101c32': (
-        list(range(49, 134, 42)) + list(range(177, 304, 42)) +
-        list(range(347, 1272, 42)) + list(range(1315, 1400, 42)),
+        list(range(18, 41, 11)) + list(range(53, 87, 11)) +
+        list(range(99, 342, 11)) + list(range(354, 377, 11)),
         names_resnets([3, 4, 23, 3]),
         -4
     ),
     'resnext101c64': (
-        list(range(81, 230, 74)) + list(range(305, 528, 74)) +
-        list(range(603, 2232, 74)) + list(range(2307, 2456, 74)),
+        list(range(18, 41, 11)) + list(range(53, 87, 11)) +
+        list(range(99, 342, 11)) + list(range(354, 377, 11)),
         names_resnets([3, 4, 23, 3]),
         -4
     ),
@@ -190,13 +223,13 @@ __middles_dict__ = {
         list(range(11, 16, 2)) + list(range(18, 23, 2)) +
         list(range(25, 30, 2)),
         names_vggs(3),
-        -4
+        -1
     ),
     'vgg19': (
         list(range(11, 18, 2)) + list(range(20, 27, 2)) +
         list(range(29, 36, 2)),
         names_vggs(4),
-        -5
+        -1
     ),
     'densenet121': (
         list(range(12, 48, 7)) + [51] + list(range(58, 136, 7)) + [139] +
@@ -236,6 +269,12 @@ __middles_dict__ = {
         ['conv%d/conv/Relu6:0' % (i + 4) for i in range(11)],
         -3
     ),
+    'mobilenet35v2': tuple_mobilenetv2(),
+    'mobilenet50v2': tuple_mobilenetv2(),
+    'mobilenet75v2': tuple_mobilenetv2(),
+    'mobilenet100v2': tuple_mobilenetv2(),
+    'mobilenet130v2': tuple_mobilenetv2(),
+    'mobilenet140v2': tuple_mobilenetv2(),
     'squeezenet': (
         [9, 16, 17, 24, 31, 32] + list(range(39, 61, 7)),
         names_squeezenet(),

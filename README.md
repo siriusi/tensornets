@@ -8,6 +8,10 @@ High level network definitions with pre-trained weights in [TensorFlow](https://
 - **Manageability.** Models are written in `tf.contrib.layers`, which is lightweight like PyTorch and Keras, and allows for ease of accessibility to every weight and end-point. Also, it is easy to deploy and expand a collection of pre-processing and pre-trained weights.
 - **Readability.** With recent TensorFlow APIs, more factoring and less indenting can be possible. For example, all the inception variants are implemented as about 500 lines of code in [TensorNets](tensornets/inceptions.py) while 2000+ lines in [official TensorFlow models](https://github.com/tensorflow/models/blob/master/research/slim/nets/inception_v3.py).
 
+## Installation
+
+You can install TensorNets from PyPI (`pip install tensornets`) or directly from GitHub (`pip install git+https://github.com/taehoonlee/tensornets.git`).
+
 ## A quick example
 
 Each network (see [full list](#image-classification)) is not a custom class but a function that takes and returns `tf.Tensor` as its input and output. Here is an example of `ResNet50`:
@@ -43,6 +47,23 @@ You can see the most probable classes:
 ```python
 print(nets.utils.decode_predictions(preds, top=2)[0])
 [(u'n02124075', u'Egyptian_cat', 0.28067636), (u'n02127052', u'lynx', 0.16826575)]
+```
+
+You can also easily obtain values of intermediate layers with `get_middles()` and `get_outputs()`:
+
+```python
+with tf.Session() as sess:
+    img = model.preprocess(img)
+    sess.run(model.pretrained())
+    middles = sess.run(model.get_middles(), {inputs: img})
+    outputs = sess.run(model.get_outputs(), {inputs: img})
+
+model.print_middles()
+assert middles[0].shape == (1, 56, 56, 256)
+assert middles[-1].shape == (1, 7, 7, 2048)
+
+model.print_outputs()
+assert sum(sum((outputs[-1] - preds) ** 2)) < 1e-8
 ```
 
 TensorNets enables us to deploy well-known architectures and benchmark those results faster ⚡️. For more information, you can check out the lists of [utilities](#utilities), [examples](#examples), and [architectures](#performances).
@@ -82,9 +103,14 @@ plt.gca().add_patch(plt.Rectangle(
 plt.show()
 ```
 
-More detection examples such as FasterRCNN on VOC2007 are [here](https://github.com/taehoonlee/tensornets-examples/blob/master/test_all_voc_models.ipynb) 😎. Note that object detection models require the following dependencies:
+More detection examples such as FasterRCNN on VOC2007 are [here](https://github.com/taehoonlee/tensornets-examples/blob/master/test_all_voc_models.ipynb) 😎. Note that:
 
-- `roi_pooling` for `FasterRCNN`:
+- APIs of detection models are slightly different:
+  * `YOLOv3`: `sess.run(model.preds, {inputs: img})`,
+  * `YOLOv2`: `sess.run(model, {inputs: img})`,
+  * `FasterRCNN`: `sess.run(model, {inputs: img, model.scales: scale})`,
+
+- `FasterRCNN` requires `roi_pooling`:
   * `git clone https://github.com/deepsense-io/roi-pooling && cd roi-pooling && vi roi_pooling/Makefile` and edit according to [here](https://github.com/tensorflow/tensorflow/issues/13607#issuecomment-335530430),
   * `python setup.py install`.
 
@@ -228,17 +254,17 @@ with tf.Session() as sess:
 
 |              | Top-1       | Top-5       | 10-5        | Size   | Stem   | Speed | References                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 |--------------|-------------|-------------|-------------|--------|--------|-------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [ResNet50](tensornets/resnets.py#L80)             | 25.126      | 7.982       | 6.842       | 25.6M  | 23.6M  | 195.4 | [[paper]](https://arxiv.org/abs/1512.03385) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/resnet_v1.py) [[torch-fb]](https://github.com/facebook/fb.resnet.torch/blob/master/models/resnet.lua) <br /> [[caffe]](https://github.com/KaimingHe/deep-residual-networks/blob/master/prototxt/ResNet-50-deploy.prototxt) [[keras]](https://github.com/keras-team/keras/blob/master/keras/applications/resnet50.py) |
-| [ResNet101](tensornets/resnets.py#L108)           | 23.580      | 7.214       | 6.092       | 44.7M  | 42.7M  | 311.7 | [[paper]](https://arxiv.org/abs/1512.03385) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/resnet_v1.py) [[torch-fb]](https://github.com/facebook/fb.resnet.torch/blob/master/models/resnet.lua) <br /> [[caffe]](https://github.com/KaimingHe/deep-residual-networks/blob/master/prototxt/ResNet-101-deploy.prototxt) |
-| [ResNet152](tensornets/resnets.py#L136)           | 23.396      | 6.882       | 5.908       | 60.4M  | 58.4M  | 439.1 | [[paper]](https://arxiv.org/abs/1512.03385) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/resnet_v1.py) [[torch-fb]](https://github.com/facebook/fb.resnet.torch/blob/master/models/resnet.lua) <br /> [[caffe]](https://github.com/KaimingHe/deep-residual-networks/blob/master/prototxt/ResNet-152-deploy.prototxt) |
-| [ResNet50v2](tensornets/resnets.py#L93)           | 24.526      | 7.252       | 6.012       | 25.6M  | 23.6M  | 209.7 | [[paper]](https://arxiv.org/abs/1603.05027) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/resnet_v2.py) [[torch-fb]](https://github.com/facebook/fb.resnet.torch/blob/master/models/preresnet.lua) |
-| [ResNet101v2](tensornets/resnets.py#L121)         | 23.116      | 6.488       | 5.230       | 44.7M  | 42.6M  | 326.2 | [[paper]](https://arxiv.org/abs/1603.05027) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/resnet_v2.py) [[torch-fb]](https://github.com/facebook/fb.resnet.torch/blob/master/models/preresnet.lua) |
-| [ResNet152v2](tensornets/resnets.py#L149)         | 22.236      | 6.080       | 4.960       | 60.4M  | 58.3M  | 455.2 | [[paper]](https://arxiv.org/abs/1603.05027) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/resnet_v2.py) [[torch-fb]](https://github.com/facebook/fb.resnet.torch/blob/master/models/preresnet.lua) |
-| [ResNet200v2](tensornets/resnets.py#L164)         | 21.714      | 5.848       | 4.830       | 64.9M  | 62.9M  | 618.3 | [[paper]](https://arxiv.org/abs/1603.05027) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/resnet_v2.py) [[torch-fb]](https://github.com/facebook/fb.resnet.torch/blob/master/models/preresnet.lua) |
-| [ResNeXt50c32](tensornets/resnets.py#L179)        | 22.260      | 6.190       | 5.410       | 25.1M  | 23.0M  | 267.4 | [[paper]](https://arxiv.org/abs/1611.05431) [[torch-fb]](https://github.com/facebookresearch/ResNeXt/blob/master/models/resnext.lua) |
-| [ResNeXt101c32](tensornets/resnets.py#L192)       | 21.270      | 5.706       | 4.842       | 44.3M  | 42.3M  | 427.9 | [[paper]](https://arxiv.org/abs/1611.05431) [[torch-fb]](https://github.com/facebookresearch/ResNeXt/blob/master/models/resnext.lua) |
-| [ResNeXt101c64](tensornets/resnets.py#L205)       | 20.506      | 5.408       | 4.564       | 83.7M  | 81.6M  | 877.8 | [[paper]](https://arxiv.org/abs/1611.05431) [[torch-fb]](https://github.com/facebookresearch/ResNeXt/blob/master/models/resnext.lua) |
-| [WideResNet50](tensornets/resnets.py#L218)        | 21.982      | 6.066       | 5.116       | 69.0M  | 66.9M  | 358.1 | [[paper]](https://arxiv.org/abs/1605.07146) [[torch]](https://github.com/szagoruyko/wide-residual-networks/blob/master/pretrained/wide-resnet.lua) |
+| [ResNet50](tensornets/resnets.py#L85)             | 25.126      | 7.982       | 6.842       | 25.6M  | 23.6M  | 195.4 | [[paper]](https://arxiv.org/abs/1512.03385) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/resnet_v1.py) [[torch-fb]](https://github.com/facebook/fb.resnet.torch/blob/master/models/resnet.lua) <br /> [[caffe]](https://github.com/KaimingHe/deep-residual-networks/blob/master/prototxt/ResNet-50-deploy.prototxt) [[keras]](https://github.com/keras-team/keras/blob/master/keras/applications/resnet50.py) |
+| [ResNet101](tensornets/resnets.py#L113)           | 23.580      | 7.214       | 6.092       | 44.7M  | 42.7M  | 311.7 | [[paper]](https://arxiv.org/abs/1512.03385) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/resnet_v1.py) [[torch-fb]](https://github.com/facebook/fb.resnet.torch/blob/master/models/resnet.lua) <br /> [[caffe]](https://github.com/KaimingHe/deep-residual-networks/blob/master/prototxt/ResNet-101-deploy.prototxt) |
+| [ResNet152](tensornets/resnets.py#L141)           | 23.396      | 6.882       | 5.908       | 60.4M  | 58.4M  | 439.1 | [[paper]](https://arxiv.org/abs/1512.03385) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/resnet_v1.py) [[torch-fb]](https://github.com/facebook/fb.resnet.torch/blob/master/models/resnet.lua) <br /> [[caffe]](https://github.com/KaimingHe/deep-residual-networks/blob/master/prototxt/ResNet-152-deploy.prototxt) |
+| [ResNet50v2](tensornets/resnets.py#L98)           | 24.526      | 7.252       | 6.012       | 25.6M  | 23.6M  | 209.7 | [[paper]](https://arxiv.org/abs/1603.05027) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/resnet_v2.py) [[torch-fb]](https://github.com/facebook/fb.resnet.torch/blob/master/models/preresnet.lua) |
+| [ResNet101v2](tensornets/resnets.py#L126)         | 23.116      | 6.488       | 5.230       | 44.7M  | 42.6M  | 326.2 | [[paper]](https://arxiv.org/abs/1603.05027) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/resnet_v2.py) [[torch-fb]](https://github.com/facebook/fb.resnet.torch/blob/master/models/preresnet.lua) |
+| [ResNet152v2](tensornets/resnets.py#L154)         | 22.236      | 6.080       | 4.960       | 60.4M  | 58.3M  | 455.2 | [[paper]](https://arxiv.org/abs/1603.05027) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/resnet_v2.py) [[torch-fb]](https://github.com/facebook/fb.resnet.torch/blob/master/models/preresnet.lua) |
+| [ResNet200v2](tensornets/resnets.py#L169)         | 21.714      | 5.848       | 4.830       | 64.9M  | 62.9M  | 618.3 | [[paper]](https://arxiv.org/abs/1603.05027) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/resnet_v2.py) [[torch-fb]](https://github.com/facebook/fb.resnet.torch/blob/master/models/preresnet.lua) |
+| [ResNeXt50c32](tensornets/resnets.py#L184)        | 22.260      | 6.190       | 5.410       | 25.1M  | 23.0M  | 267.4 | [[paper]](https://arxiv.org/abs/1611.05431) [[torch-fb]](https://github.com/facebookresearch/ResNeXt/blob/master/models/resnext.lua) |
+| [ResNeXt101c32](tensornets/resnets.py#L200)       | 21.270      | 5.706       | 4.842       | 44.3M  | 42.3M  | 427.9 | [[paper]](https://arxiv.org/abs/1611.05431) [[torch-fb]](https://github.com/facebookresearch/ResNeXt/blob/master/models/resnext.lua) |
+| [ResNeXt101c64](tensornets/resnets.py#L216)       | 20.506      | 5.408       | 4.564       | 83.7M  | 81.6M  | 877.8 | [[paper]](https://arxiv.org/abs/1611.05431) [[torch-fb]](https://github.com/facebookresearch/ResNeXt/blob/master/models/resnext.lua) |
+| [WideResNet50](tensornets/resnets.py#L232)        | 21.982      | 6.066       | 5.116       | 69.0M  | 66.9M  | 358.1 | [[paper]](https://arxiv.org/abs/1605.07146) [[torch]](https://github.com/szagoruyko/wide-residual-networks/blob/master/pretrained/wide-resnet.lua) |
 | [Inception1](tensornets/inceptions.py#L67)        | 33.160      | 12.324      | 10.246      | 7.0M   | 6.0M   | 165.1 | [[paper]](https://arxiv.org/abs/1409.4842) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/inception_v1.py) [[caffe-zoo]](https://github.com/BVLC/caffe/blob/master/models/bvlc_googlenet/deploy.prototxt) |
 | [Inception2](tensornets/inceptions.py#L105)       | 26.296      | 8.270       | 6.882       | 11.2M  | 10.2M  | 134.3 | [[paper]](https://arxiv.org/abs/1502.03167) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/inception_v2.py) |
 | [Inception3](tensornets/inceptions.py#L143)       | 22.102      | 6.280       | 5.038       | 23.9M  | 21.8M  | 314.6 | [[paper]](https://arxiv.org/abs/1512.00567) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/inception_v3.py) [[keras]](https://github.com/keras-team/keras/blob/master/keras/applications/inception_v3.py) |
@@ -251,10 +277,16 @@ with tf.Session() as sess:
 | [DenseNet121](tensornets/densenets.py#L63)        | 25.480      | 8.022       | 6.842       | 8.1M   | 7.0M   | 202.9 | [[paper]](https://arxiv.org/abs/1608.06993) [[torch]](https://github.com/liuzhuang13/DenseNet/blob/master/models/densenet.lua) |
 | [DenseNet169](tensornets/densenets.py#L71)        | 23.926      | 6.892       | 6.140       | 14.3M  | 12.6M  | 219.1 | [[paper]](https://arxiv.org/abs/1608.06993) [[torch]](https://github.com/liuzhuang13/DenseNet/blob/master/models/densenet.lua) |
 | [DenseNet201](tensornets/densenets.py#L79)        | 22.936      | 6.542       | 5.724       | 20.2M  | 18.3M  | 272.0 | [[paper]](https://arxiv.org/abs/1608.06993) [[torch]](https://github.com/liuzhuang13/DenseNet/blob/master/models/densenet.lua) |
-| [MobileNet25](tensornets/mobilenets.py#L84)       | 48.418      | 24.208      | 21.196      | 0.5M   | 0.2M   | 29.27 | [[paper]](https://arxiv.org/abs/1704.04861) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.py) |
-| [MobileNet50](tensornets/mobilenets.py#L91)       | 35.708      | 14.376      | 12.180      | 1.3M   | 0.8M   | 42.32 | [[paper]](https://arxiv.org/abs/1704.04861) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.py) |
-| [MobileNet75](tensornets/mobilenets.py#L98)       | 31.588      | 11.758      | 9.878       | 2.6M   | 1.8M   | 57.23 | [[paper]](https://arxiv.org/abs/1704.04861) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.py) |
-| [MobileNet100](tensornets/mobilenets.py#L105)     | 29.576      | 10.496      | 8.774       | 4.3M   | 3.2M   | 70.69 | [[paper]](https://arxiv.org/abs/1704.04861) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.py) |
+| [MobileNet25](tensornets/mobilenets.py#L156)      | 48.418      | 24.208      | 21.196      | 0.5M   | 0.2M   | 34.46 | [[paper]](https://arxiv.org/abs/1704.04861) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.py) |
+| [MobileNet50](tensornets/mobilenets.py#L163)      | 35.708      | 14.376      | 12.180      | 1.3M   | 0.8M   | 52.46 | [[paper]](https://arxiv.org/abs/1704.04861) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.py) |
+| [MobileNet75](tensornets/mobilenets.py#L170)      | 31.588      | 11.758      | 9.878       | 2.6M   | 1.8M   | 70.11 | [[paper]](https://arxiv.org/abs/1704.04861) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.py) |
+| [MobileNet100](tensornets/mobilenets.py#L177)     | 29.576      | 10.496      | 8.774       | 4.3M   | 3.2M   | 83.41 | [[paper]](https://arxiv.org/abs/1704.04861) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.py) |
+| [MobileNet35v2](tensornets/mobilenets.py#L184)    | 39.914      | 17.568      | 15.422      | 1.7M   | 0.4M   | 57.04 | [[paper]](https://arxiv.org/abs/1801.04381) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet_v2.py) |
+| [MobileNet50v2](tensornets/mobilenets.py#L191)    | 34.806      | 13.938      | 11.976      | 2.0M   | 0.7M   | 64.35 | [[paper]](https://arxiv.org/abs/1801.04381) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet_v2.py) |
+| [MobileNet75v2](tensornets/mobilenets.py#L198)    | 30.468      | 10.824      | 9.188       | 2.7M   | 1.4M   | 88.68 | [[paper]](https://arxiv.org/abs/1801.04381) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet_v2.py) |
+| [MobileNet100v2](tensornets/mobilenets.py#L205)   | 28.664      | 9.858       | 8.322       | 3.5M   | 2.3M   | 93.82 | [[paper]](https://arxiv.org/abs/1801.04381) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet_v2.py) |
+| [MobileNet130v2](tensornets/mobilenets.py#L212)   | 25.320      | 7.878       | 6.728       | 5.4M   | 3.8M   | 130.4 | [[paper]](https://arxiv.org/abs/1801.04381) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet_v2.py) |
+| [MobileNet140v2](tensornets/mobilenets.py#L219)   | 24.770      | 7.578       | 6.518       | 6.2M   | 4.4M   | 132.9 | [[paper]](https://arxiv.org/abs/1801.04381) [[tf-slim]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet_v2.py) |
 | [SqueezeNet](tensornets/squeezenets.py#L45)       | 45.566      | 21.960      | 18.578      | 1.2M   | 0.7M   | 71.43 | [[paper]](https://arxiv.org/abs/1602.07360) [[caffe]](https://github.com/DeepScale/SqueezeNet/blob/master/SqueezeNet_v1.1/train_val.prototxt) |
 
 ### Object detection
@@ -276,8 +308,24 @@ with tf.Session() as sess:
 
 |                                                                        | mAP    | Size   | Speed |  FPS  | References |
 |------------------------------------------------------------------------|--------|--------|-------|-------|------------|
-| [YOLOv3VOC](tensornets/references/yolos.py#L175)                       | 0.7247 | 62M    | 24.09 | 41.51 | [[paper]](https://pjreddie.com/media/files/papers/YOLOv3.pdf) [[darknet]](https://pjreddie.com/darknet/yolo/) [[darkflow]](https://github.com/thtrieu/darkflow) |
+| [YOLOv3VOC](tensornets/references/yolos.py#L175)                       | 0.7423 | 62M    | 24.09 | 41.51 | [[paper]](https://pjreddie.com/media/files/papers/YOLOv3.pdf) [[darknet]](https://pjreddie.com/darknet/yolo/) [[darkflow]](https://github.com/thtrieu/darkflow) |
 | [YOLOv2VOC](tensornets/references/yolos.py#L195)                       | 0.7320 | 51M    | 14.75 | 67.80 | [[paper]](https://arxiv.org/abs/1612.08242) [[darknet]](https://pjreddie.com/darknet/yolov2/) [[darkflow]](https://github.com/thtrieu/darkflow) |
 | [TinyYOLOv2VOC](tensornets/references/yolos.py#L205)                   | 0.5303 | 16M    | 6.534 | 153.0 | [[paper]](https://arxiv.org/abs/1612.08242) [[darknet]](https://pjreddie.com/darknet/yolov2/) [[darkflow]](https://github.com/thtrieu/darkflow) |
 | [FasterRCNN\_ZF\_VOC](tensornets/references/rcnns.py#L151)               | 0.4466 | 59M    | 241.4 | 3.325 | [[paper]](https://arxiv.org/abs/1506.01497) [[caffe]](https://github.com/rbgirshick/py-faster-rcnn) [[roi-pooling]](https://github.com/deepsense-ai/roi-pooling) |
 | [FasterRCNN\_VGG16\_VOC](tensornets/references/rcnns.py#L187)            | 0.6872 | 137M   | 300.7 | 4.143 | [[paper]](https://arxiv.org/abs/1506.01497) [[caffe]](https://github.com/rbgirshick/py-faster-rcnn) [[roi-pooling]](https://github.com/deepsense-ai/roi-pooling) |
+
+## News 📰
+
+- The six variants of MobileNetv2 are released, [5 May 2018](https://github.com/taehoonlee/tensornets/commit/fb429b6637f943875249dff50f4bc6220d9d50bf).
+- YOLOv3 for COCO and VOC are released, [4 April 2018](https://github.com/taehoonlee/tensornets/commit/d8b2d8a54dc4b775a174035da63561028deb6624).
+- Generic object detection models for YOLOv2 and FasterRCNN are released, [26 March 2018](https://github.com/taehoonlee/tensornets/commit/67915e659d2097a96c82ba7740b9e43a8c69858d).
+
+## Future work 🔥
+
+- Add training codes.
+- Add image classification models (PolyNet, PNASNet).
+- Add object detection models (MaskRCNN, SSD).
+- Add image segmentation models (FCN, UNet).
+- Add image datasets (COCO, OpenImages).
+- Add style transfer examples which can be coupled with any network in TensorNets.
+- Add speech and language models with representative datasets (WaveNet, ByteNet).
