@@ -84,7 +84,7 @@ def fb_preprocess(x):
     # Refer to the following Torch ResNets
     # https://github.com/facebook/fb.resnet.torch/blob/master/pretrained/classify.lua
     x = x.copy()
-    x /= 255.
+    x = x / 255.
     x[:, :, :, 0] -= 0.485
     x[:, :, :, 1] -= 0.456
     x[:, :, :, 2] -= 0.406

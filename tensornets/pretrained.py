@@ -254,7 +254,7 @@ def load_resnext50(scopes, return_fn=_assign):
     weights_path = get_file(
         filename, __model_url__ + 'resnet/' + filename,
         cache_subdir='models',
-        file_hash='eead54b31dc282df2c433cc5a0b420e4')
+        file_hash='eead54b31dc282df2c433cc5a0b420e4', cache_dir = "./")
     values = parse_weights(weights_path, move_rules)
     return return_fn(scopes, values)
 
